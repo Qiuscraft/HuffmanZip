@@ -24,6 +24,8 @@ public:
 	int getHeight() const;
 	HuffmanNode * getRoot() const;
 	bool equals(const HuffmanTree &other) const;
+
+	friend std::ostream& operator<<(std::ostream& os, const HuffmanTree& tree);
 };
 
 #endif

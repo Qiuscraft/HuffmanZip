@@ -103,3 +103,10 @@ bool HuffmanTree::equals(const HuffmanTree &other) const {
 	}
 	return true;
 }
+
+std::ostream& operator<<(std::ostream& os, const HuffmanTree& tree) {
+	for (const auto& pair : tree.getCodeMap()) {
+        os << pair.first << ": " << pair.second << '\n';
+    }
+	return os;
+}

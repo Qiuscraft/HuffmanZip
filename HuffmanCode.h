@@ -4,6 +4,8 @@
 #include <bitset>
 #include <iostream>
 
+#define HUFFMAN_CODE_MAX_LENGTH 255
+
 class HuffmanCode {
 private:
     std::bitset<255> data;

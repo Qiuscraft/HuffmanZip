@@ -10,6 +10,7 @@
 #include "Util.h"
 
 #include <iostream>
+// TODO: 压缩成功后文件的大端序小端序。
 
 void HuffmanZip::compress(const std::string& inputPath, const std::string& outputPath) {
     std::ifstream inFile(inputPath, std::ios::binary);
@@ -82,6 +83,7 @@ void HuffmanZip::decompress(const std::string& inputPath, const std::string& out
     uint32_t paddingBitAmount;
     inFile.read((char*)&bitAmount, sizeof(bitAmount));
     inFile.read((char*)&paddingBitAmount, sizeof(paddingBitAmount));
+
     uint64_t actualBits = bitAmount - paddingBitAmount;
 
     // Read compressed data and decode

@@ -11,7 +11,7 @@ bool BitInBuffer::readBit() {
         current = 0;
     }
 
-    bool bit = data.test(current);
+    bool bit = data.test(7 - current);
     current ++;
     return bit;
 }
