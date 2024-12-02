@@ -1,82 +1,64 @@
 #include "Counter.h"
 #include <fstream>
-#include <iostream>
 #include <string.h>
+#include <filesystem>
 
 void Counter::writeCountArray(const std::string& filename, uint64_t *countArray) {
-    writeCountArray(filename, countArray, 1024);
-}
-
-void Counter::writeCountArray(const std::string& filename, uint64_t *countArray, size_t bufferSize) {
     memset(countArray, 0, sizeof(uint64_t) * 256);
 
-    std::ifstream inputFile(filename, std::ios::in | std::ios::binary);
-    if (!inputFile.is_open()) {
-        std::cerr << "Failed to open file: " << filename << std::endl;
-        return;
-    }
+    addCountArray(filename, countArray);
+}
 
-    char *buffer = (char *) malloc(sizeof(char) * bufferSize);
-    if (buffer == nullptr) {
-        std::cerr << "Failed to allocate buffer" << std::endl;
-        inputFile.close();
-        return;
-    }
-
-    while (inputFile.read(buffer, bufferSize) || inputFile.gcount() > 0) {
-        std::streamsize bytesRead = inputFile.gcount();
-        for (std::streamsize i = 0; i < bytesRead; ++i) {
-            countArray[(unsigned char)buffer[i]] ++;
+void Counter::writeDirectoryCountArray(const std::string& directoryName, uint64_t *countArray) {
+    // Initialize the countArray with zeros
+    memset(countArray, 0, sizeof(uint64_t) * 256);
+    
+    // Use std::filesystem to iterate over files in the directory
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(directoryName)) {
+        if (entry.is_regular_file()) {
+            addCountArray(entry.path().string(), countArray);
         }
     }
+}
 
-    free(buffer);
+void Counter::addCountArray(const std::string& filename, uint64_t *countArray) {
+    const size_t bufferSize = 8192; // 缓冲区大小
+    char buffer[bufferSize];
+
+    std::ifstream inputFile(filename, std::ios::in | std::ios::binary | std::ios::ate);
+    if (!inputFile.is_open()) {
+        throw std::runtime_error("Failed to open input file when addCountArray.");
+    }
+
+    std::streampos fileSize = inputFile.tellg();
+    inputFile.seekg(0, std::ios::beg);
+
+    while (fileSize > 0) {
+        inputFile.read(buffer, bufferSize);
+        std::streamsize readBytes = inputFile.gcount();
+
+        // 卸载缓冲区
+        char* curr = buffer;
+        // 通过循环展开提高性能
+        while (readBytes >= 8) {
+            countArray[static_cast<unsigned char>(*curr++)]++;
+            countArray[static_cast<unsigned char>(*curr++)]++;
+            countArray[static_cast<unsigned char>(*curr++)]++;
+            countArray[static_cast<unsigned char>(*curr++)]++;
+            countArray[static_cast<unsigned char>(*curr++)]++;
+            countArray[static_cast<unsigned char>(*curr++)]++;
+            countArray[static_cast<unsigned char>(*curr++)]++;
+            countArray[static_cast<unsigned char>(*curr++)]++;
+            readBytes -= 8;
+        }
+
+        // 处理剩余字符
+        while (readBytes > 0) {
+            countArray[static_cast<unsigned char>(*curr++)]++;
+            --readBytes;
+        }
+
+        fileSize -= bufferSize;
+    }
     inputFile.close();
 }
-
-/*
-std::unordered_map<char, int> Counter::getCountUnorderedMap(const std::string& filename) {
-	char character;
-	std::ifstream inputFile(filename, std::ios::in);
-	std::unordered_map<char, int> countMap;
-
-	const size_t bufferSize = 1024;
-    char *buffer = (char *) malloc(sizeof(char) * bufferSize);
-
-    while (inputFile) {
-        inputFile.read(buffer, bufferSize);
-        std::streamsize bytesRead = inputFile.gcount();
-        for (std::streamsize i = 0; i < bytesRead; ++i) {
-            ++countMap[buffer[i]];
-        }
-    }
-
-	free(buffer);
-	
-	inputFile.close();
-
-	return countMap;
-}
-
-std::unordered_map<char, int> Counter::getCountUnorderedMap(const std::string& filename, size_t bufferSize) {
-	char character;
-	std::ifstream inputFile(filename, std::ios::in);
-	std::unordered_map<char, int> countMap;
-
-    char *buffer = (char *) malloc(sizeof(char) * bufferSize);
-
-    while (inputFile) {
-        inputFile.read(buffer, bufferSize);
-        std::streamsize bytesRead = inputFile.gcount();
-        for (std::streamsize i = 0; i < bytesRead; ++i) {
-            ++countMap[buffer[i]];
-        }
-    }
-
-	free(buffer);
-	
-	inputFile.close();
-
-	return countMap;
-}
-*/
