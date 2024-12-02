@@ -5,9 +5,6 @@
 #include <queue>
 #include <string.h>
 
-// TODO: remove test include
-#include <iostream>
-
 HuffmanNode::HuffmanNode():leftChild(nullptr), rightChild(nullptr), data('\0'), count(0) {}
 
 HuffmanNode::HuffmanNode(const HuffmanNode &other): data(other.data), count(other.count) {
@@ -138,7 +135,7 @@ std::unordered_map<char, HuffmanCode> & HuffmanNode::writeCodeMap(
 	if (node == nullptr)
 		return codeMap;
 	
-	if (node->data != '\0')
+	if (node->isLeaf())
 		codeMap[node->data] = code;
 
 	else {

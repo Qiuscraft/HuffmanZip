@@ -1,8 +1,6 @@
 #include "BitOutBuffer.h"
 #include "HuffmanCode.h"
 
-#include "Util.h"
-
 // TODO: 处理小端序和大端序的问题。
 
 BitOutBuffer::BitOutBuffer(std::ofstream &outStream):

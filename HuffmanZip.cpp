@@ -7,9 +7,7 @@
 #include <sstream>
 #include "BitOutBuffer.h"
 #include "BitInBuffer.h"
-#include "Util.h"
 
-#include <iostream>
 // TODO: 压缩成功后文件的大端序小端序。
 
 void HuffmanZip::compress(const std::string& inputPath, const std::string& outputPath) {
@@ -24,6 +22,7 @@ void HuffmanZip::compress(const std::string& inputPath, const std::string& outpu
     // Build Huffman tree
     uint64_t countArray[256];
     Counter::writeCountArray(inputPath, countArray);
+
     HuffmanTree tree(countArray);
     std::string serializedTree = tree.serialize();
     uint32_t treeSize = serializedTree.size();

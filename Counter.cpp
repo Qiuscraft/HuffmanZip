@@ -9,23 +9,29 @@ void Counter::writeCountArray(const std::string& filename, uint64_t *countArray)
 
 void Counter::writeCountArray(const std::string& filename, uint64_t *countArray, size_t bufferSize) {
     memset(countArray, 0, sizeof(uint64_t) * 256);
-    
-    char character;
-	std::ifstream inputFile(filename, std::ios::in);
+
+    std::ifstream inputFile(filename, std::ios::in | std::ios::binary);
+    if (!inputFile.is_open()) {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return;
+    }
 
     char *buffer = (char *) malloc(sizeof(char) * bufferSize);
+    if (buffer == nullptr) {
+        std::cerr << "Failed to allocate buffer" << std::endl;
+        inputFile.close();
+        return;
+    }
 
-    while (inputFile) {
-        inputFile.read(buffer, bufferSize);
+    while (inputFile.read(buffer, bufferSize) || inputFile.gcount() > 0) {
         std::streamsize bytesRead = inputFile.gcount();
         for (std::streamsize i = 0; i < bytesRead; ++i) {
-            countArray[buffer[i]] ++;
+            countArray[(unsigned char)buffer[i]] ++;
         }
     }
 
-	free(buffer);
-	
-	inputFile.close();
+    free(buffer);
+    inputFile.close();
 }
 
 /*

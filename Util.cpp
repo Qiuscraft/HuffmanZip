@@ -3,6 +3,7 @@
 #include <bitset>
 #include <fstream>
 #include <unordered_map>
+#include <iomanip>
 
 void Util::printBinary(const std::string &str) {
     for (char c : str) {
@@ -64,10 +65,29 @@ void Util::saveHuffmanCodes(const std::unordered_map<char, HuffmanCode>& huffman
     std::ofstream file(filename);
     if (file.is_open()) {
         for (const auto& pair : huffmanMap) {
-            file << pair.first << ": " << pair.second << std::endl;
+            file << 
+            std::hex << std::setw(2) << std::setfill('0') << 
+            (unsigned int)(unsigned char)pair.first << 
+            std::dec << std::setw(0) << std::setfill(' ') << 
+            ": " << pair.second << std::endl;
         }
         file.close();
     } else {
         std::cerr << "Failed to open file for writing." << std::endl;
+    }
+}
+
+void Util::outputNonZeroValues(const uint64_t arr[256], const std::string &filename) {
+    std::ofstream outFile(filename);
+    if (!outFile) {
+        std::cerr << "Error opening the file!" << std::endl;
+        return;
+    }
+    
+    for (int i = 0; i < 256; ++i) {
+        if (arr[i] != 0) {
+            outFile << "Index: " << std::hex << std::setw(2) << std::setfill('0') << i
+                    << ", Value: " << std::dec << arr[i] << std::endl;
+        }
     }
 }

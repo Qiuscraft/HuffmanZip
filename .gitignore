@@ -1,2 +1,5 @@
 testcases/
 huffmanzip
+decompressed
+input
+compare_files.py

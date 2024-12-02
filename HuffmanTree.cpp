@@ -2,6 +2,8 @@
 #include <queue>
 #include <vector>
 
+// TODO: 压缩过程中树的信息
+
 HuffmanTree::HuffmanTree(): root(nullptr) {}
 
 HuffmanTree::HuffmanTree(const HuffmanTree &other) {
