@@ -22,6 +22,8 @@ void HuffmanZip::compress(const std::string& inputPath, const std::string& outpu
     } 
     
     else if (std::filesystem::is_regular_file(path)) {
+        uint32_t emptyDirSize = 0;
+        outFile.write((char *) &emptyDirSize, sizeof(emptyDirSize));
         Counter::writeCountArray(inputPath, countArray);
         HuffmanTree tree(countArray);
         writeTree(outFile, tree);
@@ -173,7 +175,6 @@ void HuffmanZip::addFileToZip(const std::string& inputPath, std::ofstream& outFi
 
     inFile.close();
 }
-
 
 void HuffmanZip::writeTree(std::ofstream& outFile, const HuffmanTree &tree) {
     std::string serializedTree = tree.serialize();
