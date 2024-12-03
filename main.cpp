@@ -12,13 +12,13 @@ int main() {
 
     start = std::chrono::high_resolution_clock::now();
     // HuffmanZip::compress("testcases\\testcase08Speed\\1.csv", "huffmanzip");
-    HuffmanZip::compress("testcases\\testcase02NormalSingleFile\\7.pdf", "huffmanzip");
+    HuffmanZip::compress("testcases\\testcase02NormalSingleFile\\7.pdf", "huffmanzip", "j5n5kr37");
     end = std::chrono::high_resolution_clock::now();
     duration = end - start;
     std::cout << "Compression took " << duration.count() << " seconds." << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
-    HuffmanZip::decompress("huffmanzip", "decompressed");
+    HuffmanZip::decompress("huffmanzip", "decompressed", "j5n5kr37");
     end = std::chrono::high_resolution_clock::now();
     duration = end - start;
     std::cout << "Decompression took " << duration.count() << " seconds." << std::endl;

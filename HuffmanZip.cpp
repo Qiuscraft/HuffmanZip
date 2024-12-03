@@ -6,8 +6,13 @@
 #include <sstream>
 #include "BitOutBuffer.h"
 #include "BitInBuffer.h"
+#include "XOREncryption.h"
 
 void HuffmanZip::compress(const std::string& inputPath, const std::string& outputPath) {
+    compress(inputPath, outputPath, std::string());
+}
+
+void HuffmanZip::compress(const std::string& inputPath, const std::string& outputPath, const std::string &password) {
     std::ofstream outFile(outputPath, std::ios::binary);
     if (!outFile.is_open()) 
         throw std::runtime_error("Failed to open output file");
@@ -26,7 +31,7 @@ void HuffmanZip::compress(const std::string& inputPath, const std::string& outpu
         outFile.write((char *) &emptyDirSize, sizeof(emptyDirSize));
         Counter::writeCountArray(inputPath, countArray);
         HuffmanTree tree(countArray);
-        writeTree(outFile, tree);
+        writeTree(outFile, tree, password);
         addFileToZip(inputPath, outFile, tree);
     } 
     
@@ -43,7 +48,7 @@ void HuffmanZip::compress(const std::string& inputPath, const std::string& outpu
 
         Counter::writeDirectoryCountArray(inputPath, countArray);
         HuffmanTree tree(countArray);
-        writeTree(outFile, tree);
+        writeTree(outFile, tree, password);
         for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) {
             if (std::filesystem::is_regular_file(entry.path())) {
                 addFileToZip(entry.path().string(), outFile, tree);
@@ -58,6 +63,10 @@ void HuffmanZip::compress(const std::string& inputPath, const std::string& outpu
 }
 
 void HuffmanZip::decompress(const std::string& inputPath, const std::string& outputPath) {
+    decompress(inputPath, outputPath, std::string());
+}
+
+void HuffmanZip::decompress(const std::string& inputPath, const std::string& outputPath, const std::string &password) {
     std::ifstream inFile(inputPath, std::ios::binary);
     if (!inFile.is_open()) 
         throw std::runtime_error("Failed to open input file");
@@ -69,12 +78,7 @@ void HuffmanZip::decompress(const std::string& inputPath, const std::string& out
     inFile.read(&dir[0], dirSize);
     createDirectories(dir, outputPath);
 
-    // Read tree
-    uint32_t treeSize;
-    inFile.read((char*)&treeSize, sizeof(treeSize));
-    std::string serializedTree(treeSize, '\0');
-    inFile.read(&serializedTree[0], treeSize);
-    HuffmanTree tree = HuffmanTree(serializedTree);
+    HuffmanTree tree = readTree(inFile, password);
 
     while (true) {
         // Read OutFile
@@ -177,12 +181,31 @@ void HuffmanZip::addFileToZip(const std::string& inputPath, std::ofstream& outFi
 }
 
 void HuffmanZip::writeTree(std::ofstream& outFile, const HuffmanTree &tree) {
-    std::string serializedTree = tree.serialize();
+    writeTree(outFile, tree, std::string());
+}
+
+void HuffmanZip::writeTree(std::ofstream& outFile, const HuffmanTree &tree, const std::string &password) {
+    std::string serializedTree = XOREncryption::encryptData(tree.serialize(), password);
     uint32_t treeSize = serializedTree.size();
 
     // Write tree size and serialized tree to output file
     outFile.write((char *) &treeSize, sizeof(treeSize));
     outFile.write(serializedTree.c_str(), treeSize);
+}
+
+HuffmanTree HuffmanZip::readTree(std::ifstream &inFile) {
+    return readTree(inFile, std::string());
+}
+
+HuffmanTree HuffmanZip::readTree(std::ifstream &inFile, const std::string &password) {
+    // Read tree
+    uint32_t treeSize;
+    inFile.read((char*)&treeSize, sizeof(treeSize));
+    std::string serializedTree(treeSize, '\0');
+    inFile.read(&serializedTree[0], treeSize);
+    serializedTree = XOREncryption::encryptData(serializedTree, password);
+    HuffmanTree tree = HuffmanTree(serializedTree);
+    return tree;
 }
 
 bool HuffmanZip::is_directory_empty(const std::filesystem::path& dirPath) {
