@@ -26,8 +26,13 @@ int main(int argc, char *argv[]) {
     if (mode == "-c" || mode == "-compress") {
         HuffmanZip::compress(input, output, password);
     } else if (mode == "-d" || mode == "-decompress") {
-        if (overwrite) HuffmanZip::decompress(input, output, password);
-        else HuffmanZip::decompress(input, output, password, std::cin, std::cout);
+        try {
+            if (overwrite) HuffmanZip::decompress(input, output, password);
+            else HuffmanZip::decompress(input, output, password, std::cin, std::cout);
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            return 1;
+        }
     } else {
         std::cerr << "Usage:\n";
         std::cerr << "  huffmanzip -c(ompress) <input> <output> [-p <password>]\n";
