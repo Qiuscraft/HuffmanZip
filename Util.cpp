@@ -4,7 +4,6 @@
 #include <iostream>
 #include <bitset>
 #include <fstream>
-#include <unordered_map>
 #include <iomanip>
 
 void Util::printBinary(const std::string &str) {
