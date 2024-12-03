@@ -5,10 +5,9 @@
 
 #include <string>
 
-class XOREncryption {
-public:
+namespace XOREncryption {
     static std::string encryptData(const std::string& data, const std::string& password);
     static std::string decryptData(const std::string& encryptedData, const std::string& password);
-};
+}
 
 #endif
