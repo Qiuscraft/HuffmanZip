@@ -9,7 +9,6 @@
 class Counter {
 public:
 	static void writeCountArray(const std::string& filename, uint64_t *countArray);
-	static void writeDirectoryCountArray(const std::string& directoryName, uint64_t *countArray);
 private:
 	static void addCountArray(const std::string& filename, uint64_t *countArray);
 };

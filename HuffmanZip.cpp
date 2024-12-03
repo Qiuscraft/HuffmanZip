@@ -10,74 +10,58 @@
 #include "BitInBuffer.h"
 #include "XOREncryption.h"
 
-void HuffmanZip::compress(const std::string& inputPath, const std::string& outputPath) {
-    compress(inputPath, outputPath, std::string());
-}
+void HuffmanZip::compress(const std::string& inputPath, const std::string& outputPath, 
+    const std::string &password, std::istream &istream, std::ostream &ostream, bool overwrite) {
 
-void HuffmanZip::compress(const std::string& inputPath, const std::string& outputPath, const std::string &password) {
+    std::filesystem::path path(inputPath);
+    if (!std::filesystem::exists(path)) 
+        throw std::runtime_error("Input file does not exist.");
+    
+    if (!overwrite && std::filesystem::exists(outputPath)) {
+        ostream << "\033[32m" << outputPath << "\033[0m" << " already exists, overwrite it? Y/[N]" << std::endl;
+        char c;
+        istream.get(c);
+        if (c != 'y' && c != 'Y') {
+            ostream << "Abort compression." << std::endl;
+            return;
+        }
+        ostream << "Overwrite it." << std::endl;
+    }
+
     std::ofstream outFile(outputPath, std::ios::binary);
     if (!outFile.is_open()) 
         throw std::runtime_error("Failed to open output file");
 
-    std::filesystem::path path(inputPath);
+    outFile.put(127); // 先写一个char(127)，标志着该文件由本程序生成。
+    writeEmptyDirectories(outFile, inputPath); // 向压缩包写入空文件夹数据
 
-    if (!std::filesystem::exists(path)) {
-        throw std::runtime_error("Failed to open input file");
-    }
-
-    if (std::filesystem::is_regular_file(path)) {
-        handleFileCompression(inputPath, outFile, password);
-    } 
-    else if (std::filesystem::is_directory(path)) {
-        handleDirectoryCompression(inputPath, outFile, password);
-    } 
-    else {
-        throw std::runtime_error("The inputPath is neither a regular file nor a directory.");
-    }
-    outFile.close();
-}
-
-void HuffmanZip::handleFileCompression(const std::string& inputPath, std::ofstream &outFile, const std::string &password) {
-    // 先写一个char(127)，标志着该文件由本程序生成。
-    outFile.put(127);
-    
-    // 向压缩包写入空文件夹数据
-    uint32_t emptyDirSize = 0;
-    outFile.write((char *) &emptyDirSize, sizeof(emptyDirSize));
     // 向压缩包写入树数据
     uint64_t countArray[256];
     Counter::writeCountArray(inputPath, countArray);
     HuffmanTree tree(countArray);
     writeTree(outFile, tree, password);
-    // 向压缩包写入每个文件的数据
-    addFileToZip(inputPath, outFile, tree);
-}
 
-void HuffmanZip::handleDirectoryCompression(const std::string& inputPath, std::ofstream &outFile, const std::string &password) {
-    // 先写一个char(127)，标志着该文件由本程序生成。
-    outFile.put(127);
-    
-    // 向压缩包写入空文件夹数据
-    writeEmptyDirectories(outFile, inputPath);
-    // 向压缩包写入树数据
-    uint64_t countArray[256];
-    Counter::writeDirectoryCountArray(inputPath, countArray);
-    HuffmanTree tree(countArray);
-    writeTree(outFile, tree, password);
-    // 向压缩包写入每个文件的数据
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(inputPath)) {
-        if (std::filesystem::is_regular_file(entry.path())) {
-            addFileToZip(entry.path().string(), outFile, tree);
+    if (std::filesystem::is_regular_file(path)) 
+        addFileToZip(inputPath, outFile, tree);
+    else if (std::filesystem::is_directory(path)) {
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(inputPath)) {
+            if (std::filesystem::is_regular_file(entry.path())) {
+                addFileToZip(entry.path().string(), outFile, tree);
+            }
         }
     }
+    
+    outFile.close();
 }
 
 // 向压缩包中写入空文件夹数据
 void HuffmanZip::writeEmptyDirectories(std::ofstream &outFile, const std::string& inputPath) {
     std::string emptyDir;
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(inputPath)) {
-        if (is_directory_empty(entry.path())) {
-            emptyDir = emptyDir.append(entry.path().string()).append("\n");
+    if (std::filesystem::is_directory(inputPath)) {
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(inputPath)) {
+            if (is_directory_empty(entry.path())) {
+                emptyDir = emptyDir.append(entry.path().string()).append("\n");
+            }
         }
     }
     uint32_t emptyDirSize = emptyDir.size();
@@ -85,31 +69,25 @@ void HuffmanZip::writeEmptyDirectories(std::ofstream &outFile, const std::string
     outFile.write(emptyDir.c_str(), emptyDirSize);
 }
 
-// 不强制覆盖
-void HuffmanZip::decompress(const std::string& inputPath, const std::string& outputPath, std::istream &istream, std::ostream &ostream) {
-    decompress(inputPath, outputPath, std::string(), istream, ostream);
-}
+void HuffmanZip::decompress(const std::string& input, const std::string& output,
+        const std::string &password, std::istream &istream, std::ostream &ostream, bool overwrite) {
 
-void HuffmanZip::decompress(const std::string& inputPath, const std::string& outputPath, const std::string &password, std::istream &istream, std::ostream &ostream) {
-    std::ifstream inFile(inputPath, std::ios::binary);
+    std::ifstream inFile(input, std::ios::binary);
     if (!inFile.is_open()) 
         throw std::runtime_error("Failed to open input file");
 
-    // 读取标志，检查是否由本程序生成。
+    // 读取标志位，检查是否由本程序生成。
     char c;
     inFile.get(c);
     if (c != 127)
         throw std::domain_error("This file is not generated by huffmanzip.");
 
-    // 读取空文件夹数据并创建空文件夹
-    readCreateEmptyDirectories(inFile, outputPath);
-
-    // 读取树
-    HuffmanTree tree = readTree(inFile, password);
+    readCreateEmptyDirectories(inFile, output); // 读取空文件夹数据并创建空文件夹
+    HuffmanTree tree = readTree(inFile, password); // 读取树
 
     // 解压每一个文件。
     while (true) {
-        if (!decompressFile(inFile, outputPath, tree, istream, ostream)) {
+        if (!decompressFile(inFile, output, tree, istream, ostream, overwrite)) {
             break;
         }
     }
@@ -117,73 +95,10 @@ void HuffmanZip::decompress(const std::string& inputPath, const std::string& out
     inFile.close();
 }
 
-// 强制覆盖
-void HuffmanZip::decompress(const std::string& inputPath, const std::string& outputPath) {
-    decompress(inputPath, outputPath, std::string());
-}
+// 解压文件。当走到压缩包末尾，返回false，其他情况返回true。
+bool HuffmanZip::decompressFile(std::ifstream &inFile, const std::string& outputPath, 
+        const HuffmanTree &tree, std::istream &istream, std::ostream &ostream, bool overwrite) {
 
-void HuffmanZip::decompress(const std::string& inputPath, const std::string& outputPath, const std::string &password) {    
-    std::ifstream inFile(inputPath, std::ios::binary);
-    if (!inFile.is_open()) 
-        throw std::runtime_error("Failed to open input file");
-
-    // 读取标志，检查是否由本程序生成。
-    char c;
-    inFile.get(c);
-    if (c != 127)
-        throw std::domain_error("This file is not generated by huffmanzip.");
-
-    // 读取空文件夹数据并创建空文件夹
-    readCreateEmptyDirectories(inFile, outputPath);
-
-    // 读取树
-    HuffmanTree tree = readTree(inFile, password);
-
-    // 解压每一个文件。
-    while (true) {
-        if (!decompressFile(inFile, outputPath, tree)) {
-            break;
-        }
-    }
-
-    inFile.close();
-}
-
-// 解压文件，解压成功返回true，当走到压缩包末尾，没有文件可以解压时返回false。强制覆盖。
-bool HuffmanZip::decompressFile(std::ifstream &inFile, const std::string& outputPath, const HuffmanTree &tree) {
-    uint32_t filenameSize;
-    inFile.read((char*)&filenameSize, sizeof(filenameSize));
-
-    if (inFile.eof())
-        return false;
-    
-    // 读取文件名
-    std::string filename(filenameSize, '\0');
-    inFile.read(&filename[0], filenameSize);
-
-    // 读取并创建文件所在的文件夹
-    std::filesystem::path outputFullPath = std::filesystem::path(outputPath) / filename;
-    std::filesystem::create_directories(outputFullPath.parent_path());
-
-    std::ofstream outFile(outputFullPath, std::ios::binary);
-    if (!outFile.is_open()) 
-        throw std::runtime_error("Failed to open output file");
-
-    // 读取文件实际长度
-    uint64_t bitAmount;
-    uint32_t paddingBitAmount;
-    inFile.read((char*)&bitAmount, sizeof(bitAmount));
-    inFile.read((char*)&paddingBitAmount, sizeof(paddingBitAmount));
-
-    uint64_t actualBits = bitAmount - paddingBitAmount;
-
-    decodeContent(inFile, outFile, tree, actualBits);
-    outFile.close();
-    return true;
-}
-
-// 解压文件，不强制覆盖，询问用户。
-bool HuffmanZip::decompressFile(std::ifstream &inFile, const std::string& outputPath, const HuffmanTree &tree, std::istream &istream, std::ostream &ostream) {
     uint32_t filenameSize;
     inFile.read((char*)&filenameSize, sizeof(filenameSize));
 
@@ -202,15 +117,17 @@ bool HuffmanZip::decompressFile(std::ifstream &inFile, const std::string& output
     uint64_t bitAmount;
     inFile.read((char*)&bitAmount, sizeof(bitAmount));
 
-    if (std::filesystem::exists(outputFullPath)) {
+    // 询问用户是否覆盖文件
+    if (!overwrite && std::filesystem::exists(outputFullPath)) {
         ostream << "\033[32m" << outputFullPath.lexically_normal().string() << "\033[0m" << " already exists, overwrite it? Y/[N]" << std::endl;
         char c;
         istream.get(c);
         if (c != 'y' && c != 'Y') {
-            ostream << "\033[31m" << outputFullPath.lexically_normal().string() << "\033[0m skipped. " << std::endl;
+            ostream << "Skipped. " << std::endl;
             inFile.seekg(bitAmount / 8 + sizeof(uint32_t), std::ios::cur);
             return true;
         }
+        ostream << "Overwrite it. " << std::endl;
     }
 
     uint32_t paddingBitAmount;
@@ -288,20 +205,12 @@ void HuffmanZip::writeCompressedData(std::ofstream &outFile, const std::unordere
     inFile.close();
 }
 
-void HuffmanZip::writeTree(std::ofstream& outFile, const HuffmanTree &tree) {
-    writeTree(outFile, tree, std::string());
-}
-
 void HuffmanZip::writeTree(std::ofstream& outFile, const HuffmanTree &tree, const std::string &password) {
     std::string serializedTree = XOREncryption::encryptData(tree.serialize(), password);
     uint32_t treeSize = serializedTree.size();
 
     outFile.write((char *) &treeSize, sizeof(treeSize));
     outFile.write(serializedTree.c_str(), treeSize);
-}
-
-HuffmanTree HuffmanZip::readTree(std::ifstream &inFile) {
-    return readTree(inFile, std::string());
 }
 
 HuffmanTree HuffmanZip::readTree(std::ifstream &inFile, const std::string &password) {

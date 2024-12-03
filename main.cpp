@@ -11,7 +11,14 @@ int main(int argc, char *argv[]) {
 
     std::string mode(argv[1]);
     std::string input(argv[2]);
-    std::string output(argv[3]);
+
+    std::string output;
+    if (argc > 3) output = argv[3];
+    else {
+        if (mode == "-c" || mode == "-compress") output = input + ".huffmanzip";
+        else output = ".";
+    }
+
     std::string password;
     bool overwrite = false;
 
@@ -24,19 +31,23 @@ int main(int argc, char *argv[]) {
     }
 
     if (mode == "-c" || mode == "-compress") {
-        HuffmanZip::compress(input, output, password);
+        try {
+            HuffmanZip::compress(input, output, password, std::cin, std::cout, overwrite);
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            return 1;
+        }
     } else if (mode == "-d" || mode == "-decompress") {
         try {
-            if (overwrite) HuffmanZip::decompress(input, output, password);
-            else HuffmanZip::decompress(input, output, password, std::cin, std::cout);
+            HuffmanZip::decompress(input, output, password, std::cin, std::cout, overwrite);
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
             return 1;
         }
     } else {
         std::cerr << "Usage:\n";
-        std::cerr << "  huffmanzip -c(ompress) <input> <output> [-p <password>]\n";
-        std::cerr << "  huffmanzip -d(ecompress) <input> <output> [-p <password>] [-y]\n";
+        std::cerr << "  huffmanzip -c(ompress) <input> [<output>] [-p <password>] [-y]\n";
+        std::cerr << "  huffmanzip -d(ecompress) <input> [<output>] [-p <password>] [-y]\n";
         return 1;
     }
 
