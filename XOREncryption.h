@@ -1,3 +1,5 @@
+// 异或加密与解密模块。
+
 #ifndef GUARD_XOREncryption_h
 #define GUARD_XOREncryption_h
 

@@ -1,3 +1,5 @@
+// 调试模块，不涉及业务功能。
+
 #include "Util.h"
 #include <iostream>
 #include <bitset>

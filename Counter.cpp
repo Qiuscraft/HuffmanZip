@@ -1,3 +1,5 @@
+// 计数器模块，根据输入计算各个字符出现的次数。
+
 #include "Counter.h"
 #include <fstream>
 #include <string.h>

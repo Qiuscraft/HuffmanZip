@@ -1,3 +1,5 @@
+// 调试模块，不涉及业务功能。
+
 #ifndef GUARD_Util_h
 #define GUARD_Util_h
 

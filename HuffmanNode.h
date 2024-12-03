@@ -1,3 +1,5 @@
+// 哈夫曼结点模块。
+
 #ifndef GUARD_HuffmanNode_h
 #define GUARD_HuffmanNode_h
 

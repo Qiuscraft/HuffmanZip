@@ -1,3 +1,5 @@
+// 解压缩模块。
+
 #include "HuffmanZip.h"
 #include "Counter.h"
 #include <fstream>

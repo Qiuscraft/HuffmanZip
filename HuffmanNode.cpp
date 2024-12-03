@@ -1,3 +1,5 @@
+// 哈夫曼结点模块。
+
 #include "HuffmanNode.h"
 #include <stdexcept>
 #include <algorithm>

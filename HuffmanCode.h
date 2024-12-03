@@ -1,3 +1,5 @@
+// 哈夫曼编码模块，使用std::bitset存储编码，比使用std::string更高效。
+
 #ifndef GUARD_HuffmanCode_h
 #define GUARD_HuffmanCode_h
 

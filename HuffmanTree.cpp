@@ -1,3 +1,5 @@
+// 哈夫曼树模块。
+
 #include "HuffmanTree.h"
 #include <queue>
 #include <vector>
