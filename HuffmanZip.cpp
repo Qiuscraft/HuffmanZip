@@ -54,21 +54,6 @@ void HuffmanZip::compress(const std::string& inputPath, const std::string& outpu
     outFile.close();
 }
 
-// 向压缩包中写入空文件夹数据
-void HuffmanZip::writeEmptyDirectories(std::ofstream &outFile, const std::string& inputPath) {
-    std::string emptyDir;
-    if (std::filesystem::is_directory(inputPath)) {
-        for (const auto& entry : std::filesystem::recursive_directory_iterator(inputPath)) {
-            if (is_directory_empty(entry.path())) {
-                emptyDir = emptyDir.append(entry.path().string()).append("\n");
-            }
-        }
-    }
-    uint32_t emptyDirSize = emptyDir.size();
-    outFile.write((char *) &emptyDirSize, sizeof(emptyDirSize));
-    outFile.write(emptyDir.c_str(), emptyDirSize);
-}
-
 void HuffmanZip::decompress(const std::string& input, const std::string& output,
         const std::string &password, std::istream &istream, std::ostream &ostream, bool overwrite) {
 
@@ -93,6 +78,21 @@ void HuffmanZip::decompress(const std::string& input, const std::string& output,
     }
 
     inFile.close();
+}
+
+// 向压缩包中写入空文件夹数据
+void HuffmanZip::writeEmptyDirectories(std::ofstream &outFile, const std::string& inputPath) {
+    std::string emptyDir;
+    if (std::filesystem::is_directory(inputPath)) {
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(inputPath)) {
+            if (is_directory_empty(entry.path())) {
+                emptyDir = emptyDir.append(entry.path().string()).append("\n");
+            }
+        }
+    }
+    uint32_t emptyDirSize = emptyDir.size();
+    outFile.write((char *) &emptyDirSize, sizeof(emptyDirSize));
+    outFile.write(emptyDir.c_str(), emptyDirSize);
 }
 
 // 解压文件。当走到压缩包末尾，返回false，其他情况返回true。
@@ -228,6 +228,7 @@ bool HuffmanZip::is_directory_empty(const std::filesystem::path& dirPath) {
            std::filesystem::begin(std::filesystem::directory_iterator(dirPath)) == std::filesystem::end(std::filesystem::directory_iterator(dirPath));
 }
 
+// 用于提前创建文件夹，否则解压缩时无法写入文件。
 void HuffmanZip::createDirectories(const std::string &paths, const std::string& outputPath) {
     std::istringstream stream(paths);
     std::string path;
