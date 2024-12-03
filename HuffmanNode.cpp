@@ -83,11 +83,8 @@ std::string HuffmanNode::serialize() const {
 }
 
 std::string HuffmanNode::serialize(const HuffmanNode *node) {
-	if (node == nullptr)
-		return std::string();
-	else {
-		std::string result;
-
+	std::string result;
+	if (node != nullptr) {
 		std::queue<const HuffmanNode *> nodeQueue;
 		nodeQueue.push(node);
 
@@ -117,6 +114,7 @@ std::string HuffmanNode::serialize(const HuffmanNode *node) {
 			}
 		}
 	}
+	return result;
 }
 
 HuffmanNode * HuffmanNode::deserialize(const std::string &serialized_string) {
