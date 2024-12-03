@@ -1,5 +1,7 @@
 #include "XOREncryption.h"
 
+using std::string;
+
 string XOREncryption::encryptData(const string& data, const string& password) {
     // 默认不加密
     size_t passwordLength = password.length();
