@@ -1,5 +1,3 @@
-// 计数器模块，根据输入计算各个字符出现的次数。
-
 #ifndef GUARD_Counter_h
 #define GUARD_Counter_h
 
@@ -14,4 +12,3 @@ private:
 };
 
 #endif
-

@@ -1,5 +1,3 @@
-// 哈夫曼结点模块。
-
 #ifndef GUARD_HuffmanNode_h
 #define GUARD_HuffmanNode_h
 
@@ -38,9 +36,9 @@ public:
 	char getCharacter() const;
 	bool isLeaf() const;
 
-	std::string serialize() const;
-	static std::string serialize(HuffmanNode *node);
+	static std::string serialize(const HuffmanNode *node);
 	static HuffmanNode * deserialize(const std::string &serialized_string);
+	std::string serialize() const;
 
 	static std::unordered_map<char, HuffmanCode> & writeCodeMap(
 		const HuffmanNode *node, HuffmanCode code, std::unordered_map<char, HuffmanCode> &codeMap);

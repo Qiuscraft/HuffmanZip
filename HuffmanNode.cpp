@@ -1,5 +1,3 @@
-// 哈夫曼结点模块。
-
 #include "HuffmanNode.h"
 #include <stdexcept>
 #include <algorithm>
@@ -81,46 +79,44 @@ bool HuffmanNode::isLeaf() const {
 }
 
 std::string HuffmanNode::serialize() const {
-	std::string result;
-
-	result.reserve(1280);
-
-	std::queue<const HuffmanNode *> nodeQueue;
-	nodeQueue.push(this);
-
-	while (!nodeQueue.empty()) {
-		const HuffmanNode *currentNode = nodeQueue.front();
-		nodeQueue.pop();
-
-		if (currentNode == nullptr)
-			continue;
-
-		nodeQueue.push(currentNode->leftChild);
-		nodeQueue.push(currentNode->rightChild);
-
-		if (currentNode->isLeaf()) {
-			result.push_back(currentNode->data);
-			// 转大端序
-			uint64_t big_endian_value = 
-    			((currentNode->count & 0x00000000000000FF) << 56) | 
-				((currentNode->count & 0x000000000000FF00) << 40) |
-				((currentNode->count & 0x0000000000FF0000) << 24) |
-				((currentNode->count & 0x00000000FF000000) << 8)  |
-				((currentNode->count & 0x000000FF00000000) >> 8)  |
-				((currentNode->count & 0x0000FF0000000000) >> 24) |
-				((currentNode->count & 0x00FF000000000000) >> 40) |
-				((currentNode->count & 0xFF00000000000000) >> 56);
-		result.append(reinterpret_cast<const char*>(&big_endian_value), sizeof(big_endian_value));
-		}
-	}
-
-	return result;
+	return serialize(this);
 }
 
-std::string HuffmanNode::serialize(HuffmanNode *node) {
+std::string HuffmanNode::serialize(const HuffmanNode *node) {
 	if (node == nullptr)
 		return std::string();
-	else return node->serialize();
+	else {
+		std::string result;
+
+		std::queue<const HuffmanNode *> nodeQueue;
+		nodeQueue.push(node);
+
+		while (!nodeQueue.empty()) {
+			const HuffmanNode *currentNode = nodeQueue.front();
+			nodeQueue.pop();
+
+			if (currentNode == nullptr)
+				continue;
+
+			nodeQueue.push(currentNode->leftChild);
+			nodeQueue.push(currentNode->rightChild);
+
+			if (currentNode->isLeaf()) {
+				result.push_back(currentNode->data);
+				// 转大端序
+				uint64_t big_endian_value = 
+					((currentNode->count & 0x00000000000000FF) << 56) | 
+					((currentNode->count & 0x000000000000FF00) << 40) |
+					((currentNode->count & 0x0000000000FF0000) << 24) |
+					((currentNode->count & 0x00000000FF000000) << 8)  |
+					((currentNode->count & 0x000000FF00000000) >> 8)  |
+					((currentNode->count & 0x0000FF0000000000) >> 24) |
+					((currentNode->count & 0x00FF000000000000) >> 40) |
+					((currentNode->count & 0xFF00000000000000) >> 56);
+				result.append(reinterpret_cast<const char*>(&big_endian_value), sizeof(big_endian_value));
+			}
+		}
+	}
 }
 
 HuffmanNode * HuffmanNode::deserialize(const std::string &serialized_string) {
@@ -188,7 +184,7 @@ void HuffmanNode::initByCountArray(uint64_t *countArray) {
 }
 
 void HuffmanNode::serializedStringToCountArray(const std::string &serialized_string, uint64_t *countArray) {
-    memset(countArray, 0, sizeof(uint64_t) * 256); // 确保明确地设置大小
+    memset(countArray, 0, sizeof(uint64_t) * 256);
 
     if (serialized_string.size() % 9 != 0)
         throw std::domain_error("Incorrect serialized_string.size() when deserializing a HuffmanNode.");

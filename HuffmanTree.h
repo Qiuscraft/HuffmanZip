@@ -1,5 +1,3 @@
-// 哈夫曼树模块。
-
 #ifndef GUARD_HuffmanTree_h
 #define GUARD_HuffmanTree_h
 

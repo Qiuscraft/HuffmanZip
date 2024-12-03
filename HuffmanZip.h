@@ -1,5 +1,3 @@
-// 解压缩模块。
-
 #ifndef GUARD_HuffmanZip_h
 #define GUARD_HuffmanZip_h
 

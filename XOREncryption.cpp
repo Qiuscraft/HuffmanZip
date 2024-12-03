@@ -1,8 +1,5 @@
-// 异或加密与解密模块。
-
 #include "XOREncryption.h"
 
-// 加密函数
 string XOREncryption::encryptData(const string& data, const string& password) {
     // 默认不加密
     size_t passwordLength = password.length();
@@ -18,7 +15,6 @@ string XOREncryption::encryptData(const string& data, const string& password) {
     return encryptedData;
 }
 
-// 解密函数
 string XOREncryption::decryptData(const string& encryptedData, const string& password) {
     // 解密过程与加密过程相同
     return encryptData(encryptedData, password);

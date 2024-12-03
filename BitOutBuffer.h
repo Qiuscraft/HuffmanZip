@@ -1,6 +1,3 @@
-// 压缩过程用到的输出缓冲区模块，哈夫曼编码按位写入缓冲区，达到大小后再按字节输出。
-// 本模块使用__uint128_t模拟位容器，实现了比std::bitset和std::vector<bool>更高的性能。
-
 #ifndef GUARD_BitOutBuffer_h
 #define GUARD_BitOutBuffer_h
 
@@ -18,7 +15,7 @@ private:
     size_t size;
 
     void in(bool bit, int n);
-    void leftShift(size_t shiftSize); // 末尾不补零
+    void leftShift(size_t shiftSize); // 此左移操作末尾不补零
     void set(size_t index, bool bit);
     bool get(size_t index) const;
     char getByte(size_t byteIndex) const;

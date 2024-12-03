@@ -1,8 +1,6 @@
-// 哈夫曼编码模块，使用std::bitset存储编码，比使用std::string更高效。
-
 #include "HuffmanCode.h"
 
-HuffmanCode::HuffmanCode(): data(std::bitset<255>()), size(0){}
+HuffmanCode::HuffmanCode(): data(std::bitset<HUFFMAN_CODE_MAX_LENGTH>()), size(0){}
 
 HuffmanCode HuffmanCode::append(bool bit) const {
     HuffmanCode code = HuffmanCode(*this);

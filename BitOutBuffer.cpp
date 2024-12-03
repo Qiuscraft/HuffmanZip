@@ -1,6 +1,3 @@
-// 压缩过程用到的输出缓冲区模块，哈夫曼编码按位写入缓冲区，达到大小后再按字节输出。
-// 本模块使用__uint128_t模拟位容器，实现了比std::bitset和std::vector<bool>更高的性能。
-
 #include "BitOutBuffer.h"
 #include "HuffmanCode.h"
 
