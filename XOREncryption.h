@@ -5,9 +5,11 @@
 
 #include <string>
 
+using std::string;
+
 namespace XOREncryption {
-    static std::string encryptData(const std::string& data, const std::string& password);
-    static std::string decryptData(const std::string& encryptedData, const std::string& password);
+    string encryptData(const string& data, const string& password);
+    string decryptData(const string& encryptedData, const string& password);
 }
 
 #endif
