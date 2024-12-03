@@ -6,9 +6,6 @@
 #include <sstream>
 #include "BitOutBuffer.h"
 #include "BitInBuffer.h"
-#include <filesystem>
-
-// TODO: 压缩成功后文件的大端序小端序。
 
 void HuffmanZip::compress(const std::string& inputPath, const std::string& outputPath) {
     std::ofstream outFile(outputPath, std::ios::binary);
@@ -32,6 +29,16 @@ void HuffmanZip::compress(const std::string& inputPath, const std::string& outpu
     } 
     
     else if (std::filesystem::is_directory(path)) {
+        std::string emptyDir;
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) {
+            if (is_directory_empty(entry.path())) {
+                emptyDir = emptyDir.append(entry.path().string()).append("\n");
+            }
+        }
+        uint32_t emptyDirSize = emptyDir.size();
+        outFile.write((char *) &emptyDirSize, sizeof(emptyDirSize));
+        outFile.write(emptyDir.c_str(), emptyDirSize);
+
         Counter::writeDirectoryCountArray(inputPath, countArray);
         HuffmanTree tree(countArray);
         writeTree(outFile, tree);
@@ -40,7 +47,7 @@ void HuffmanZip::compress(const std::string& inputPath, const std::string& outpu
                 addFileToZip(entry.path().string(), outFile, tree);
             }
         }
-    } 
+    }
     
     else {
         throw std::runtime_error("The inputPath is neither a regular file nor a directory.");
@@ -52,6 +59,13 @@ void HuffmanZip::decompress(const std::string& inputPath, const std::string& out
     std::ifstream inFile(inputPath, std::ios::binary);
     if (!inFile.is_open()) 
         throw std::runtime_error("Failed to open input file");
+
+    // Read empty dir
+    uint32_t dirSize;
+    inFile.read((char*)&dirSize, sizeof(dirSize));
+    std::string dir(dirSize, '\0');
+    inFile.read(&dir[0], dirSize);
+    createDirectories(dir, outputPath);
 
     // Read tree
     uint32_t treeSize;
@@ -168,4 +182,25 @@ void HuffmanZip::writeTree(std::ofstream& outFile, const HuffmanTree &tree) {
     // Write tree size and serialized tree to output file
     outFile.write((char *) &treeSize, sizeof(treeSize));
     outFile.write(serializedTree.c_str(), treeSize);
+}
+
+bool HuffmanZip::is_directory_empty(const std::filesystem::path& dirPath) {
+    return std::filesystem::is_directory(dirPath) && 
+           std::filesystem::begin(std::filesystem::directory_iterator(dirPath)) == std::filesystem::end(std::filesystem::directory_iterator(dirPath));
+}
+
+void HuffmanZip::createDirectories(const std::string &paths, const std::string& outputPath) {
+    std::istringstream stream(paths);
+    std::string path;
+    
+    while (std::getline(stream, path)) {
+        if (!path.empty()) {
+            try {
+                std::filesystem::path outputFullPath = std::filesystem::path(outputPath) / path;
+                std::filesystem::create_directories(outputFullPath);
+            } catch (const std::filesystem::filesystem_error &e) {
+                std::cerr << "Error creating directory " << path << ": " << e.what() << std::endl;
+            }
+        }
+    }
 }

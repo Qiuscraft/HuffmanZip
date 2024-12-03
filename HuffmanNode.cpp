@@ -201,3 +201,13 @@ void HuffmanNode::serializedStringToCountArray(const std::string &serialized_str
         countArray[static_cast<unsigned char>(serialized_string[i * 9])] += amount;
     }
 }
+
+HuffmanNode * HuffmanNode::generateByCountArray(uint64_t *countArray) {
+	for (int i = 0; i < 256; i++) {
+		if (countArray[i] != 0) {
+			HuffmanNode *result = new HuffmanNode(countArray);
+			return result;
+		}
+	}
+	return nullptr;
+}

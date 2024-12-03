@@ -2,8 +2,6 @@
 #include <queue>
 #include <vector>
 
-// TODO: 压缩过程中树的信息
-
 HuffmanTree::HuffmanTree(): root(nullptr) {}
 
 HuffmanTree::HuffmanTree(const HuffmanTree &other) {
@@ -33,7 +31,7 @@ HuffmanTree::HuffmanTree(const std::string &serialized_string) {
 }
 
 HuffmanTree::HuffmanTree(uint64_t *countArray) {
-	root = new HuffmanNode(countArray);
+	root = HuffmanNode::generateByCountArray(countArray);
 }
 
 std::string HuffmanTree::serialize() const {

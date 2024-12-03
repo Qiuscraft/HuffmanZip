@@ -12,7 +12,7 @@ int main() {
 
     start = std::chrono::high_resolution_clock::now();
     // HuffmanZip::compress("testcases\\testcase08Speed\\1.csv", "huffmanzip");
-    HuffmanZip::compress("testcases", "huffmanzip");
+    HuffmanZip::compress("testcases\\testcase4EmptyFolder", "huffmanzip");
     end = std::chrono::high_resolution_clock::now();
     duration = end - start;
     std::cout << "Compression took " << duration.count() << " seconds." << std::endl;

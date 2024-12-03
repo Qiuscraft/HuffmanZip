@@ -42,6 +42,9 @@ public:
 
 	static std::unordered_map<char, HuffmanCode> & writeCodeMap(
 		const HuffmanNode *node, HuffmanCode code, std::unordered_map<char, HuffmanCode> &codeMap);
+		
+	static HuffmanNode * generateByCountArray(uint64_t *countArray);
+
 };
 
 #endif
